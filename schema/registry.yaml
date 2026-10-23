@@ -1,0 +1,101 @@
+schema_version: "1.1.0"
+parser_version: "1.0.0"
+segmenter_version: "1.0.0"
+canonicalizer_version: "1.0.0"
+
+# All authoritative IDs are width 6, allocated by the single-writer committer.
+id_prefixes:
+  state: D
+  document: DOC
+  snapshot: SNAP
+  block: B
+  container: S
+  variant: V
+  placement: PL
+  claim: C
+  relation: L
+  revision: REV
+  evidence: E
+  reference: REF
+  quantity: Q
+  check: CHK
+  event: EV
+  run: RUN
+  dataset: DATASET
+  study: STUDY
+  assessment: A
+  review: RV
+  argument: ARG
+  invalidation: INV
+  binding: BD
+
+block_kinds: [paragraph, heading, list_item, blockquote, math_block, code_block, table, html_block, other]
+
+source_access: [full_text, abstract_only, snippet_only, metadata_only, unavailable]
+
+verification_status: [not_checked, proposed, confirmed, rejected, stale, pending]
+
+independence_status: [unknown, independent, shared_source, shared_dataset, shared_study, not_applicable]
+
+assessment_status: [supported, partially_supported, unsupported, counterevidence, unknown, pending]
+
+check_outcome: [pass, fail, conflict, insufficient_evidence, insufficient_context, incomparable, pending, error]
+
+source_type: [journal_article, preprint, book, webpage, dataset, experiment_artifact, other]
+
+relation_types:
+  semantic: [DEPENDS_ON, SUPPORTS, ENTAILS, CONTRADICTS, QUALIFIES]
+  evidence: [SUPPORTED_BY, REFUTED_BY]
+  text: [APPEARS_IN, DERIVED_FROM]
+  edit: [REPLACES]
+
+# REPLACES is projected from Revision Groups. REMOVED_FROM_TEXT is an event, not a relation.
+event_types:
+  - BLOCK_CREATED
+  - BLOCK_MOVED
+  - CONTAINER_CREATED
+  - VARIANT_CREATED
+  - CONTAINER_MOVED
+  - TEXT_SPLIT
+  - TEXT_MERGED
+  - REMOVED_FROM_TEXT
+  - RESTORED_IN_TEXT
+  - CLAIM_CREATED
+  - CLAIM_REPLACED
+  - CLAIM_REVISION
+  - CHECK_INVALIDATED
+  - SNAPSHOT_COMMITTED
+  - STATE_RECOVERED
+
+revision_operations: [REPLACEMENT, SPLIT, MERGE, RESTORE, DELETE]
+
+# Placement is the occurrence identity. A Variant may appear at most once per
+# placement; duplicate visible text gets distinct Containers and Placements.
+placement:
+  id_prefix: PL
+  required_fields: [placement_id, container_id, variant_id, order, source_ranges]
+  source_ranges_are_bytes: true
+  half_open: true
+
+# A canonical field that is unknown cannot be used for fingerprint reuse.
+canonicalization:
+  unknown_policy: force_new_claim
+  fingerprint_reuse_requires: all_truth_condition_fields_known
+  serialization: canonical_json_sort_keys_utf8
+
+# Phase 1/2 deterministic comparison thresholds.
+thresholds:
+  block_match_min_similarity: 0.35
+  sentence_match_min_similarity: 0.55
+  split_merge_min_similarity: 0.50
+  move_requires_unique_exact_match: true
+  segmentation_boundary_precision: 0.98
+  container_id_retention: 0.95
+  false_match_rate: 0.01
+  byte_coverage: 1.00
+
+quantity:
+  value_union: [point, range, interval]
+  required_fields: [id, metric_id, value, unit, locator, extraction_status, claim_ids]
+  optional_fields: [value_lower, value_upper, percent_base, population, dataset_id, dataset_version, sample_filter, time_scope, precision, approximation, source_expression, derivation]
+  claim_id: nullable_or_array

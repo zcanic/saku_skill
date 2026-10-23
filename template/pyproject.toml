@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "papercheck"
+version = "0.3.0"
+description = "Evidence-led manuscript tracking, immutable commits and a reusable visual inspection desk"
+readme = "README.md"
+license = {file = "LICENSE"}
+requires-python = ">=3.11"
+dependencies = ["markdown-it-py>=2.2", "PyYAML>=6.0", "jsonschema>=4.0"]
+
+[project.optional-dependencies]
+postgres = ["psycopg2-binary>=2.9"]
+
+[project.scripts]
+papercheck = "papercheck.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["papercheck*"]
+
+[tool.setuptools.package-data]
+papercheck = ["schemas/*.json", "template/*", "template/.gitignore", "template/workflow/*.md", "template/templates/*.json", "template/.agents/skills/papercheck/*.md", "inspector_assets/ASSET-MANIFEST.json", "inspector_assets/frontend/*.json", "inspector_assets/frontend/*.html", "inspector_assets/frontend/*.ts", "inspector_assets/frontend/src/*", "inspector_assets/runtime/*.md", "inspector_assets/runtime/*.txt", "inspector_assets/runtime/LICENSE", "inspector_assets/runtime/.env.example", "inspector_assets/runtime/.dockerignore", "inspector_assets/runtime/.gitignore", "inspector_assets/runtime/Dockerfile", "inspector_assets/runtime/compose.yaml", "inspector_assets/runtime/ops/*.py", "inspector_assets/runtime/app/*.mjs", "inspector_assets/runtime/app/*.py", "inspector_assets/runtime/app/dist/*", "inspector_assets/runtime/app/dist/assets/*"]

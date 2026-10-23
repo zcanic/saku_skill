@@ -1,0 +1,61 @@
+{
+  "schema_version": "1.1.0",
+  "base_state_id": null,
+  "base_sha256": null,
+  "paper_sha256": "sha256:2924107850da9c61ef998dd2e7feff3d00103b001547a136cca244f12fc0cae2",
+  "segments": [
+    {
+      "ref": "s",
+      "kind": "paragraph",
+      "block_ref": "p",
+      "text": "X causes Y.\n",
+      "source_ranges": [
+        {
+          "start_byte": 0,
+          "end_byte": 12
+        }
+      ]
+    }
+  ],
+  "untracked": [],
+  "semantic": {
+    "claims": [
+      {
+        "ref": "c",
+        "surface_statement": "X causes Y.",
+        "kind": "assertion",
+        "canonical_statement": {
+          "subject": {
+            "entity_id": "X"
+          },
+          "predicate": "causes",
+          "object": {
+            "entity_id": "Y"
+          },
+          "polarity": "positive",
+          "modality": "asserted",
+          "causality": "causal",
+          "quantifier": null,
+          "population": null,
+          "time_scope": null,
+          "conditions": [],
+          "quantity_ids": []
+        }
+      }
+    ],
+    "bindings": [
+      {
+        "claim": "c",
+        "segment": "s",
+        "reason": "The paragraph expresses this assertion."
+      }
+    ],
+    "references": [
+      {
+        "ref": "r",
+        "title": "Original study (not supplied)",
+        "source_access": "unavailable"
+      }
+    ]
+  }
+}

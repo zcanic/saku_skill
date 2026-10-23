@@ -1,0 +1,6 @@
+.env
+reviews/*
+!reviews/.keep
+data/
+node_modules/
+frontend/dist/

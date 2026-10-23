@@ -1,0 +1,18 @@
+.papercheck/index.sqlite*
+.papercheck/staging/
+.venv/
+.tmp/
+.env
+.pgpass.tmp
+__pycache__/
+*.pyc
+.pytest_cache/
+*.egg-info/
+build/
+dist/
+node_modules/
+# Intentional redistributable UI assets, not a developer build/cache.
+!papercheck/inspector_assets/runtime/app/dist/
+!papercheck/inspector_assets/runtime/app/dist/**
+!template/papercheck/inspector_assets/runtime/app/dist/
+!template/papercheck/inspector_assets/runtime/app/dist/**

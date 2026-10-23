@@ -1,0 +1,18 @@
+services:
+  postgres:
+    image: pgvector/pgvector:pg16-trixie
+    container_name: papercheck-pg
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-papercheck}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+      POSTGRES_DB: ${POSTGRES_DB:-papercheck}
+    ports:
+      - "127.0.0.1:55432:5432"
+    volumes:
+      - papercheck_pgdata:/var/lib/postgresql/data
+    mem_limit: 512m
+
+volumes:
+  papercheck_pgdata:
+    name: papercheck_pgdata
