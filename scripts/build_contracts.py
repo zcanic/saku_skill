@@ -35,7 +35,11 @@ QUANTITY = obj({"ref": S, "claim": S, "metric_id": S, "value": VALUE,
                 "operator": {"enum": ["=", "<", ">", "<=", ">="]},
                 "unit": S, "segment": S, "source_expression": S,
                 "extraction_status": {"enum": ["proposed", "confirmed", "pending"]},
-                "tolerance_decimal": S},
+                "tolerance_decimal": S, "precision": {"enum": ["exact", "as_written"]},
+                "derivation": {"type": ["object", "null"], "additionalProperties": True, "properties": {
+                    "op": {"enum": ["sum", "difference", "product", "ratio", "mean", "weighted_mean", "share"]},
+                    "inputs": {**arr(S), "minItems": 1}, "weights": arr(S), "of": arr(S), "scale": S},
+                    "required": ["op", "inputs"]}},
                ["ref", "metric_id", "value", "unit", "segment", "source_expression", "extraction_status"])
 BEFORE = obj({"claim": S, "placements": {**arr(S), "minItems": 1}}, ["claim", "placements"])
 AFTER = obj({"claim": S, "segments": {**arr(S), "minItems": 1}}, ["claim", "segments"])

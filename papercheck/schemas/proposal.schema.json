@@ -518,6 +518,62 @@
               "tolerance_decimal": {
                 "type": "string",
                 "minLength": 1
+              },
+              "precision": {
+                "enum": [
+                  "exact",
+                  "as_written"
+                ]
+              },
+              "derivation": {
+                "type": [
+                  "object",
+                  "null"
+                ],
+                "additionalProperties": true,
+                "properties": {
+                  "op": {
+                    "enum": [
+                      "sum",
+                      "difference",
+                      "product",
+                      "ratio",
+                      "mean",
+                      "weighted_mean",
+                      "share"
+                    ]
+                  },
+                  "inputs": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "minItems": 1
+                  },
+                  "weights": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  },
+                  "of": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  },
+                  "scale": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "required": [
+                  "op",
+                  "inputs"
+                ]
               }
             },
             "required": [
