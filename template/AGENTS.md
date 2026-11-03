@@ -7,6 +7,7 @@
 - 在项目根目录执行 `python -m papercheck context --output context.json`。正文、上下文哈希和字节偏移必须来自这次冻结输入。
 - 阅读正文、历史命题、证据与待办，再准备 proposal；`templates/proposal.example.json` 说明字段。不要用自动字符串相似度决定学术语义。
 - 用 segment `ref` 绑定本轮位置，用临时对象 `ref` 表示新对象；永久 ID 只由提交器分配。
+- 所有判断和非常识陈述（以“非本专业本科生也应该知道”为界）都要登记为原子命题，包括方法、定义、文献归属、解释、建议和局限；只有标题、占位符、纯导航句、图注面板说明和常识可以写成 non-claim，并要说明理由。
 - 等价改写保留已知 canonical statement。含未知条件时新建 Claim，替代关系标 proposed。因果、数值、量词或限定改变需要新命题。
 - `semantic.bindings` 描述本轮全部命题出现位置。无命题的段落用 `non_claim_segments` 说明。表格/代码/公式可暂列 untracked，并保留原始字节。
 - 缺少原文不能编造 quote、页码或已通过的审核。元数据来源只登记 Reference；取得可定位正文后再登记 Evidence。
