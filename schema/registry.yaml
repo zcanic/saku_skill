@@ -1,6 +1,6 @@
 schema_version: "1.1.0"
 parser_version: "1.0.0"
-segmenter_version: "1.0.0"
+segmenter_version: "1.1.0"
 canonicalizer_version: "1.0.0"
 
 # All authoritative IDs are width 6, allocated by the single-writer committer.

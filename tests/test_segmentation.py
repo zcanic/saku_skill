@@ -57,3 +57,9 @@ def test_deferred_blocks_have_no_sentences() -> None:
     blocks = parse_document(text)
     kinds = {block.kind for block in blocks if block.content is None}
     assert {"code_block", "math_block", "table"} <= kinds
+
+
+def test_numbered_headings_stay_whole() -> None:
+    text = "## 2.1. Cross-platform dataset and entity alignment\n\nFirst sentence. Second sentence.\n"
+    got = [s.normalized_text for s in sentences(text)]
+    assert got == ["2.1. Cross-platform dataset and entity alignment", "First sentence.", "Second sentence."]
