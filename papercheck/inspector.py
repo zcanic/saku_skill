@@ -104,7 +104,8 @@ def project(repo:Repo,source_roots=None,max_source_bytes=128*1024*1024):
     for row in snapshot.get('untracked_blocks',[]):
         ranges=[{'start_byte':row['start_byte'],'end_byte':row['end_byte']}]
         raw=source_text_for_ranges(paper,ranges)
-        if not raw or not raw.strip():continue
+        # Whitespace and bare Markdown markers (#, >, bullets) carry no text to inspect.
+        if not raw or not raw.strip() or (len(raw)<=16 and re.fullmatch(r'[\s#>*+\-\d.]*',raw)):continue
         blocks.append({'id':f"untracked-{row['start_byte']}-{row['end_byte']}",'raw':raw,'kind':'table' if raw.lstrip().startswith('|') else 'paragraph','ranges':ranges,'claimKeys':[],'tracked':False,'untrackedReason':row.get('reason','untracked')})
     blocks.sort(key=lambda b:b['ranges'][0]['start_byte']);section='Front matter'
     for index,block in enumerate(blocks):

@@ -169,3 +169,11 @@ def test_inspector_sections_follow_parsed_headings(tmp_path):
     headings = [b["raw"] for b in data["blocks"] if b["kind"] == "heading"]
     assert headings == ["Methods", "Results"]
     assert next(b for b in data["blocks"] if "657" in b["raw"])["section"] == "Results"
+
+
+def test_inspector_hides_bare_markdown_markers(tmp_path):
+    repo = Repo(tmp_path)
+    repo.paper_path.write_text("## 3. Results\n\nText here.\n", encoding="utf-8")
+    repo.commit(auto=True)
+    data, _, _ = project(repo)
+    assert all(b["raw"].strip("# \n") for b in data["blocks"])
