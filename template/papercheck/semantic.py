@@ -4,7 +4,7 @@ import unicodedata
 
 from . import CANONICALIZER_VERSION, SCHEMA_VERSION
 from .ids import PREFIXES, max_id
-from .quantity import decimal, quantity_checks, validate_quantity
+from .quantity import decimal, derivation_checks, derivation_refs, quantity_checks, validate_quantity
 from .util import canonical_json, now_iso, sha256_text
 
 CANONICAL_FIELDS = {"subject", "predicate", "object", "polarity", "modality", "causality",
@@ -13,6 +13,10 @@ KINDS = {"claims": "claim", "references": "reference", "evidence": "evidence",
          "quantities": "quantity", "assessments": "assessment", "relations": "relation",
          "revisions": "revision", "bindings": "binding", "checks": "check", "arguments": "argument",
          "reviews": "review", "invalidations": "invalidation", "events": "event"}
+
+
+# Deterministic numeric checks are recomputed from current quantities on every commit.
+RECOMPUTED_CHECKS = {"quantity_consistency", "quantity_derivation"}
 
 
 class SemanticError(ValueError):
@@ -186,16 +190,29 @@ def enrich(old, sources, proposal, summary):
                 "study_id": record.get("study_id", reference.get("study_id"))})
             new_alias("evidence", record["ref"], row)
         for record in data.get("quantities", []):
+            label = f"quantity {record.get('ref')}"
             try:
                 validate_quantity(record)
             except ValueError as exc:
-                raise SemanticError(str(exc)) from exc
+                raise SemanticError(f"{label}: {exc}") from exc
             sel = placement(record["segment"])
             source = rows("variants")[sel["variant_id"]]["raw_text"]
-            _need(record["source_expression"] in source, "quantity expression is not present at its segment")
+            _need(record["source_expression"] in source,
+                  f"{label}: source_expression {record['source_expression']!r} is not present at segment {record['segment']}")
             row = append("quantities", {**record, "locator": {"snapshot_id": snapid, **sel}, "claim_ids": []})
             current_quantities.append(row)
             new_alias("quantities", record["ref"], row)
+        for row in current_quantities:
+            if row.get("derivation"):
+                derivation = deepcopy(row["derivation"])
+                for key in ("inputs", "weights", "of"):
+                    if key in derivation:
+                        try:
+                            derivation[key] = [resolve("quantities", ref) for ref in derivation[key]]
+                        except SemanticError as exc:
+                            raise SemanticError(f"quantity {row['id']} derivation: {exc}") from exc
+                _need(row["id"] not in derivation_refs(derivation), f"quantity {row['id']} derivation refers to itself")
+                row["derivation"] = derivation
         for record in data.get("claims", []):
             canonical = deepcopy(record["canonical_statement"])
             qrefs = canonical.get("quantity_ids", [])
@@ -405,7 +422,7 @@ def enrich(old, sources, proposal, summary):
     for check in sources["checks"][:]:
         if check["id"] not in old_checks:
             continue
-        if set(check.get("claim_ids", [])) & affected or check["kind"] == "quantity_consistency" or check["id"] in requested_invalidations:
+        if set(check.get("claim_ids", [])) & affected or check["kind"] in RECOMPUTED_CHECKS or check["id"] in requested_invalidations:
             append("invalidations", {"check_id": check["id"], "cause_claim_ids": sorted(affected),
                 "reason": requested_invalidations.get(check["id"], "text, revision or dependency changed"), "snapshot_id": snapid})
             _event(append, "CHECK_INVALIDATED", [check["id"]], [], "affected inputs require review")
@@ -413,6 +430,8 @@ def enrich(old, sources, proposal, summary):
             current_checks.append(check)
     current_checks.extend(new_checks)
     for values in quantity_checks(current_quantities):
+        current_checks.append(append("checks", {**values, "snapshot_id": snapid}))
+    for values in derivation_checks(current_quantities):
         current_checks.append(append("checks", {**values, "snapshot_id": snapid}))
     snapshot["check_ids"] = [r["id"] for r in current_checks]
     active_references = set(explicit_reference_ids)

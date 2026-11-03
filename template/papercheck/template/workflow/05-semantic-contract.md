@@ -73,6 +73,8 @@ Quantity 必填 ref、metric_id、value、unit、segment、source_expression、e
 
 可比性字段为 metric_id、population、dataset_id、dataset_version、sample_filter、time_scope。缺少范围返回 insufficient_context；范围不同为 incomparable；未确认抽取为 pending。百分比需要 percent_base。工具以十进制执行范围、容差与登记的单位换算，产生独立 Check；它不证明原始实验材料正确。
 
+由其他数字算出的数字（样本拆分之和、消融差值、按样本量加权的合并 MAE、占比、两模型平均）可写 `derivation`：`op` 取 sum、difference、product、ratio、mean、weighted_mean、share，`inputs` 及可选 `weights`/`of` 引用其他 quantity ref 或 Q ID，可选 `scale`。提交器按书写位数推断舍入半宽，在区间上重算，生成 `quantity_derivation` 检查；超出舍入范围为 conflict。详见 docs/quantity.md §5。
+
 Reference 访问级别封闭为 full_text、abstract_only、snippet_only、metadata_only、unavailable。元数据或不可获取来源禁止登记 quote Evidence；摘要/片段不能登记 fully supported。全文位置和引文由 Agent 实际阅读并负责，校验器检查引用结构而非伪装成 PDF 阅读器。
 
 共享 source/dataset/study 会记录独立性状态；没有信息时保持 unknown，不以证据条数计算可信度。Assessment 会派生 evidence Check。其他检查由 Agent 填写方法与理由，历史审核不因更新被覆盖。
