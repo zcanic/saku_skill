@@ -32,7 +32,7 @@
     "variant_id": "V000041"
   },
   "extraction_status": "confirmed",
-  "derivation": null
+  "derivation": {"op": "sum", "inputs": ["n_pre2020", "n_oof", "n_undated"]}
 }
 ```
 
@@ -57,7 +57,27 @@
 
 `claim_ids` 是数组，允许为空：表格中的数值不一定绑定单一 Claim。当前输入可用 claim 指定一个关联命题。
 
-## 5. 边界
+## 5. 推导重算（derivation）
+
+同一指标多处出现由 `quantity_consistency` 比较；由其他数字算出的数字用 `derivation` 声明，提交器以十进制区间重算并生成 `quantity_derivation` 检查。Agent 负责写出算式，工具只做算术，不猜测关系。
+
+| op | 含义 | 额外字段 |
+|---|---|---|
+| `sum` | inputs 相加 | |
+| `difference` | 第一个减去其余 | |
+| `product` | 连乘 | |
+| `ratio` | 恰好两个：前者 / 后者 | |
+| `mean` | 简单平均 | |
+| `weighted_mean` | 加权平均 | `weights`，与 inputs 一一对应 |
+| `share` | sum(inputs) / sum(of) | `of`；可配 `scale: "100"` 得百分数 |
+
+所有算子都可配 `scale`。inputs/weights/of 写本轮 quantity ref 或既有 Q ID，必须是当前快照的 point 数值。
+
+舍入规则：小数按书写位数取半个末位（`11.158` → ±0.0005），整数视为精确计数；`tolerance_decimal` 追加容差，`precision: "exact"` 去掉舍入。工具在全部输入的舍入区间顶点上求值，得到可达区间，再与目标值的舍入区间比较：相交为 pass，不相交为 conflict（action_required）。因此 `12.729 − 11.158 = 1.571` 与所写 `1.572` 判为一致，而 `657` 写成 `675` 会被拦截。输入未确认为 pending，输入不在当前快照为 insufficient_context，分母可能为零为 error。
+
+推导检查与一致性检查一样在每次提交时按当前数值重算，旧结果写入 Invalidation 保留历史。
+
+## 6. 边界
 
 - 训练集 N 与测试集 N 不同通常不构成矛盾。
 - 摘要与方法中的同一指标，只有 scope 一致时才能报 conflict。

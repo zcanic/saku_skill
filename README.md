@@ -110,7 +110,7 @@ python -m papercheck commit --auto # 可选：自动 diff baseline
 | 命令 | 作用 |
 |---|---|
 | `scaffold <dir> [--paper <file>]` | 建立项目文件夹，复制原文字节，拒绝覆盖已有文件 |
-| `workflow [--json]` | 当前缺失来源、命题抽取、修订确认、检查失效和冲突待办 |
+| `workflow [--json] [--limit N] [--type T]` | 按类型汇总待办，action_required 优先；列出缺失来源、命题抽取、修订确认、检查失效和冲突 |
 | `report` | 从不可变记录重建当前报告 |
 | `context` | 输出冻结上下文 JSON：行/字节偏移、旧 selections、旧 untracked、diff、base 哈希 |
 | `propose <file>` | 校验 proposal 并写入 `.papercheck/staging/proposal.json` |
@@ -133,7 +133,7 @@ python -m papercheck commit --auto # 可选：自动 diff baseline
 
 1.1.0 提案的可选 `semantic` 区域支持 Claim、全量位置绑定、Revision Group、Reference、Evidence、Assessment、Quantity、Argument 和 Check。已知 canonical statement 完全一致时复用 Claim；未知条件保守新建并提议替代。REPLACES 只从带出现位置的修订组派生；恢复不会产生反向替代链。
 
-命题或依赖变化会失效旧检查，历史判断仍保留。数值按研究范围、单位和十进制进行比较。缺失全文、未知身份、候选修订和未完成检查会保留待办，不能变成“已通过”。机器只能校验 Agent 提交的记录，实际阅读与学术判断仍由 Agent 负责。
+命题或依赖变化会失效旧检查，历史判断仍保留。数值按研究范围、单位和十进制进行比较；声明了 `derivation` 的数值（求和、差值、加权平均、占比等）按书写精度在舍入区间上重算。缺失全文、未知身份、候选修订和未完成检查会保留待办，不能变成“已通过”。机器只能校验 Agent 提交的记录，实际阅读与学术判断仍由 Agent 负责。
 
 可直接运行离线示例，观察“因果改相关 + 文献缺失”的两次提交和报告：
 

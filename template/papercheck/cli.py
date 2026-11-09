@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 from pathlib import Path
 
@@ -281,9 +282,20 @@ def cmd_workflow(args):
     if args.json:
         print(json.dumps({"state_id": state.state_id, **workflow}, ensure_ascii=False, indent=2))
     else:
-        print(f"workflow {state.state_id}: {workflow['status']}")
-        for task in workflow["tasks"]:
+        from collections import Counter
+
+        tasks = workflow["tasks"]
+        print(f"workflow {state.state_id}: {workflow['status']} ({len(tasks)} tasks)")
+        for (kind, status), count in Counter((t["type"], t["status"]) for t in tasks).items():
+            print(f"  {count:>5} {status} {kind}")
+        selected = [t for t in tasks if not args.type or t["type"] in args.type]
+        # Blocking items first so they are not lost behind hundreds of extraction tasks.
+        selected.sort(key=lambda t: t["status"] != "action_required")
+        shown = selected[:args.limit] if args.limit else selected
+        for task in shown:
             print(f"{task['status']} {task['type']} {task['target']}: {task['reason']}")
+        if len(shown) < len(selected):
+            print(f"... {len(selected) - len(shown)} more; use --limit 0, --type or --json")
     return 0
 
 
@@ -342,6 +354,8 @@ def build_parser() -> argparse.ArgumentParser:
 
     p = sub.add_parser("workflow", help="show pending work and review gaps")
     p.add_argument("--json", action="store_true")
+    p.add_argument("--type", action="append", help="only list tasks of this type (repeatable)")
+    p.add_argument("--limit", type=int, default=0, help="list at most N tasks after the summary (0 = all)")
     p.set_defaults(func=cmd_workflow)
 
     p = sub.add_parser("report", help="rebuild the current human-readable report")
@@ -404,6 +418,10 @@ def main(argv: list[str] | None = None) -> int:
     except PapercheckError as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 2
+    except BrokenPipeError:
+        # `papercheck workflow | head` closed the pipe; that is not a command failure.
+        sys.stdout = open(os.devnull, "w")
+        return 0
     except (OSError, ValueError, UnicodeError) as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 2

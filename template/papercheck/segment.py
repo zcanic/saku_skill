@@ -153,8 +153,12 @@ def segment_block(block: Block, document: str, byte_offsets: list[int]) -> list[
     mapping = block.content_to_char
     if content is None or mapping is None or not content:
         return []
-    protected = protected_ranges(content)
     out: list[Sentence] = []
+    if block.kind == "heading":
+        # A heading is one unit; numbered titles such as "2.1. Data" must not split at "2.1.".
+        _emit(content, document, 0, len(content), byte_offsets, mapping, block, out)
+        return out
+    protected = protected_ranges(content)
     start = 0
     i = 0
     n = len(content)

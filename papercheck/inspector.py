@@ -75,6 +75,14 @@ def _classification(claim,checks,assessments,tasks):
     if tasks or claim.get('identity_status')=='unknown' or not requirements or any(not any(c['kind']==r and c['outcome']=='pass' for c in checks) for r in requirements):return 'pending'
     return 'reviewed'
 
+def _block_kind(raw,container_kind):
+    # Parsed headings select only the heading text, so the ledger kind is authoritative.
+    if container_kind=='heading' or raw.startswith('#'):return 'heading'
+    if container_kind=='table' or raw.startswith('|'):return 'table'
+    if container_kind=='math_block' or raw.startswith('$$'):return 'equation'
+    return 'paragraph'
+
+
 def project(repo:Repo,source_roots=None,max_source_bytes=128*1024*1024):
     issues=repo.verify()
     if issues:raise ValidationError(issues)
@@ -87,16 +95,17 @@ def project(repo:Repo,source_roots=None,max_source_bytes=128*1024*1024):
     current_checks=[c for c in state.checks if c['id'] in set(snapshot.get('check_ids',[]))]
     active_bindings=[b for b in state.bindings if b['id'] in set(snapshot.get('binding_ids',[]))]
     workflow=deepcopy(snapshot.get('workflow',{'status':'pending','tasks':[]}))
-    blocks=[];by_placement={}
+    blocks=[];by_placement={};containers=state.by_id('containers')
     for sel in snapshot['selections']:
         raw=source_text_for_ranges(paper,sel['source_ranges'])
         if raw!=variants[sel['variant_id']]['raw_text']:raise PapercheckError('Source ranges do not reproduce the current variant')
-        block={'id':sel['placement_id'],'placementId':sel['placement_id'],'raw':raw,'kind':'heading' if raw.startswith('#') else ('table' if raw.startswith('|') else ('equation' if raw.startswith('$$') else 'paragraph')),'ranges':sel['source_ranges'],'claimKeys':[],'tracked':True}
+        block={'id':sel['placement_id'],'placementId':sel['placement_id'],'raw':raw,'kind':_block_kind(raw,containers.get(sel['container_id'],{}).get('kind')),'ranges':sel['source_ranges'],'claimKeys':[],'tracked':True}
         blocks.append(block);by_placement[block['id']]=block
     for row in snapshot.get('untracked_blocks',[]):
         ranges=[{'start_byte':row['start_byte'],'end_byte':row['end_byte']}]
         raw=source_text_for_ranges(paper,ranges)
-        if not raw or not raw.strip():continue
+        # Whitespace and bare Markdown markers (#, >, bullets) carry no text to inspect.
+        if not raw or not raw.strip() or (len(raw)<=16 and re.fullmatch(r'[\s#>*+\-\d.]*',raw)):continue
         blocks.append({'id':f"untracked-{row['start_byte']}-{row['end_byte']}",'raw':raw,'kind':'table' if raw.lstrip().startswith('|') else 'paragraph','ranges':ranges,'claimKeys':[],'tracked':False,'untrackedReason':row.get('reason','untracked')})
     blocks.sort(key=lambda b:b['ranges'][0]['start_byte']);section='Front matter'
     for index,block in enumerate(blocks):
